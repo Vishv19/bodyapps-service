@@ -43,6 +43,7 @@ require('./app/routes/passport.js')(app); //load routes and pass in 'app'
 
 require('./app/routes/user.js')(app);
 require('./app/routes/measurement.js')(app);
+require('./app/routes/image.js')(app);
 app.get('/logout', function(req, res) {
   req.session.destroy(function (err) {
     res.redirect('/index.html');
