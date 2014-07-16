@@ -1,5 +1,8 @@
 # bodyapps-service
 
+**Travis build state** : [![Build Status](https://travis-ci.org/Vishv19/bodyapps-service.svg?branch=master)](https://travis-ci.org/Vishv19/bodyapps-service)  
+**Travis CI link** : https://travis-ci.org/Vishv19/bodyapps-service
+
 Web service and web application components of #bodyapps project
 
 ## Installation Guide
