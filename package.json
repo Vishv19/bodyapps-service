@@ -33,6 +33,6 @@
     "winston": "^0.7.3"
   },
   "scripts": {
-    "test": "grunt test-api"
+    "test":  "grunt test-api"
   }
 }
