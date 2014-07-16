@@ -12,7 +12,23 @@
  */
 
 var Measurement = require('../models/measurement');
+var User = require('../models/user');
+var Image = require('../models/image');
 var validator = require('validator');
+var xml = require('./xmlBuilder');
+var archiver = require('archiver');
+var async = require('async');
+
+function addXmlToZip(measurement, user, fileNameList, zip, next) {
+  var xmlDoc = xml.returnXML(measurement, user, fileNameList);
+
+  zip.append(new Buffer(xmlDoc),
+    { name:'hdf.xml' });
+
+  zip.finalize(function (err) {
+    if (err) next(err);
+  });
+}
 
 function errorResponse(message, status) {
   var message = {
@@ -83,19 +99,69 @@ module.exports = function(app) {
     })
   });
 
-  app.get('/users/:user_id/measurements/:measurement_id', function(req, res) {
+  app.get('/users/:user_id/measurements/:measurement_id', function(req, res, next) {
     var m_id = req.params.measurement_id;
     var user_id = req.params.user_id;
 
-    Measurement.findOne({ m_id: m_id}, function(err, doc) {
-      if(err)  return next(err);
-      if(doc) {
-        var measurementRecord = returnMeasurementRec(req, doc, user_id);
-        return res.json(measurementRecord);
-      }
-      return res.json(404,
-        errorResponse('Measurement record not found', 404));
-    })
+    if(req.get('Accept') == 'application/json') {
+      Measurement.findOne({ m_id: m_id}, function(err, doc) {
+        if(err)  return next(err);
+        if(doc) {
+          var measurementRecord = returnMeasurementRec(req, doc, user_id);
+          return res.json(measurementRecord);
+        }
+        return res.json(404,
+          errorResponse('Measurement record not found', 404));
+      })
+    }
+    else if (req.get('Accept') == 'application/vnd.valentina.hdf') {
+      var zip = archiver('zip');
+      res.set('Content-type', 'application/vnd.valentina.hdf');
+
+      zip.on('error', function(err) {
+        if(err) next(err);
+      });
+
+      zip.on('end', function() {
+        res.end();
+      });
+
+      zip.pipe(res);
+      var fileNameList = [];
+
+      User.findOne({ _id: user_id}, function(err, user) {
+        if(err)  return next(err);
+        if(validator.isNull(user))  return res.send(404,'user not found');
+        Measurement.findOne({ m_id: m_id}, function(err, measurement) {
+          if(err)  return next(err);
+          if(validator.isNull(measurement))  
+            return res.send(404,'measurement not found');
+          if(measurement.images.length!=0) {
+            async.each(measurement.images, function(image, callback) {
+              Image.findOne({ _id: image.idref}, function(err, doc) {
+                if(err)  return next(err);
+                // var fileName = 'pictures/'+ image.idref + '.' + image.type;
+                var fileName = 'pictures/'+ image.idref + '.' + 'txt';
+                zip.append(doc.binary_data, {name: fileName});
+                fileNameList.push(fileName);
+                callback();
+              });
+            },
+              function(err) {
+                if(err)  next(err);
+                addXmlToZip(measurement, user, fileNameList, zip, next);
+              }
+            )
+          }
+          else {
+            addXmlToZip(measurement, user, fileNameList, zip, next);
+          }
+        });
+      });
+    }
+    else {
+      return res.send(406, 'Not Acceptable Request');
+    }
   });
 
   app.post('/users/:user_id/measurements', function(req, res) {

@@ -106,7 +106,7 @@ before(function(done) {
   ], done);
 });
 
-// Reset database
+// // Reset database
 after (function(done) {
   async.series([ 
     removeUser, removeMeasurement
