@@ -67,7 +67,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('run', ['express:dev', 'watch']);
-  grunt.registerTask('test-unit', ['env:test', 'mochaTest:test']);
+  grunt.registerTask('test-unit', ['env:test', 'mochaTest:testUnit']);
   grunt.registerTask('test-api', ['env:test', 'mochaTest:testApi']);
   grunt.registerTask('test', ['env:test', 'mochaTest:test']);
 
