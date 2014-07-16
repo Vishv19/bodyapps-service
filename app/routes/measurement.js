@@ -140,8 +140,7 @@ module.exports = function(app) {
             async.each(measurement.images, function(image, callback) {
               Image.findOne({ _id: image.idref}, function(err, doc) {
                 if(err)  return next(err);
-                // var fileName = 'pictures/'+ image.idref + '.' + image.type;
-                var fileName = 'pictures/'+ image.idref + '.' + 'txt';
+                var fileName = 'pictures/'+ image.idref + '.' + image.type;
                 zip.append(doc.binary_data, {name: fileName});
                 fileNameList.push(fileName);
                 callback();
