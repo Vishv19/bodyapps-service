@@ -18,7 +18,7 @@ exports.returnXML = function (measurement, user, fileNameList) {
     var documentInfo = doc.ele('document-info')
       .ele('title','title')
         .up()
-      .ele('created', 'Date')
+      .ele('created', measurement.m_created)
         .up()
       .ele('author-name', user.name)
         .up()
